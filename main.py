@@ -1,31 +1,26 @@
-import tkinter as tk
-from tkinter import filedialog
-import os
+"""Entry point for converting planogram PDFs into PSA data structures.
 
-import PyPDF2 as PyPDF2
-import tabula as tabula
+The script lets the user select one or more PDF files, runs the
+``PlanogramExtractor`` on each file and prints the resulting structured data.
+The data can subsequently be used to create PSA files.
+"""
+from __future__ import annotations
+
+import json
 
 from HelperFile import select_pdf
-
-def PDF_TO_PSA():
-    selected_Files = select_pdf()
-    for pdf_file in selected_Files:
-        print("Processing file:", pdf_file)
-        reader = PyPDF2.PdfReader(pdf_file)
-        num_pages = len(reader.pages)
-
-        # Extract text content from each page
-        for page_num in range(num_pages):
-            page = reader.pages[page_num]
-            text_content = page.extract_text()
-            print("Text content from page", page_num + 1, ":\n", text_content)
-
-        # Extract tables using tabula-py
-        tables = tabula.read_pdf(pdf_file, pages='all', multiple_tables=True)
-        if tables:
-            for table_num, table in enumerate(tables, start=1):
-                print("Table", table_num, ":\n", table)
+from planogram_extractor import PlanogramExtractor
 
 
-if __name__ == '__main__':
-    PDF_TO_PSA()
+def pdf_to_psa() -> None:
+    """Run the planogram extraction pipeline on selected PDFs."""
+    selected_files = select_pdf()
+    extractor = PlanogramExtractor()
+    for pdf_file in selected_files:
+        print(f"Processing file: {pdf_file}")
+        planogram_data = extractor.extract_planogram(pdf_file)
+        print(json.dumps(planogram_data, indent=2))
+
+
+if __name__ == "__main__":
+    pdf_to_psa()
